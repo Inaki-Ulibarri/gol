@@ -1,16 +1,49 @@
 /**
- * TODO: add some cool patterns for the 
- * user to choose from.
+ * TODO: add the Eureka pattern https://conwaylife.com/wiki/Eureka
+ *       be able to exit the program propertly
+ * Docs: https://conwaylife.com/wiki/Main_Page
+ *       https://www.youtube.com/watch?v=qJAuyoDt03A
+ *       https://en.wikipedia.org/wiki/Conway's_Game_of_Life 
  */
 
 #include <stdio.h>
 #include <stdbool.h>
+#include <unistd.h>
 
-#define P_H 5
-#define P_W 5
+#define P_H 6
+#define P_W 6
 
 enum {DED, ALV}; //alv papu :v
 typedef _Bool cell;
+
+void printPlane(cell plane[P_H][P_W]);
+int  isBorder(size_t x, size_t y);
+int  countNeigh(cell plane[P_H][P_W], int x, int y);
+void copyMatrix(cell const mat_s[P_H][P_W],
+		cell mat_t[P_H][P_W]);
+void nextGen(cell plane[P_H][P_W]);
+void clScr(void);
+
+int main()
+{
+	cell matrix[P_H][P_W] = {
+		{0, 0, 0, 0, 0, 0},
+		{0, 1, 1, 0, 0, 0},
+		{0, 1, 0, 0, 0, 0},
+		{0, 0, 0, 0, 1, 0},
+		{0, 0, 0, 1, 1, 0},
+		{0, 0, 0, 0, 0, 0},
+		
+	};
+	for (;;)
+	{
+		clScr();
+		printPlane(matrix);
+		nextGen(matrix);		
+		usleep(500000);
+	}
+	return (0);
+}
 
 void printPlane(cell plane[P_H][P_W])
 {
@@ -25,9 +58,17 @@ void printPlane(cell plane[P_H][P_W])
 	}
 }
 
-int isOutOfBounds(size_t x, size_t y)
+/**
+ * in order for a finite matrix to behave like
+ * an infinite plane, you need to create patterns
+ * that will fit into the finite matrix and avoid
+ * using the borders of it. Because of this,
+ * you'll want to stick to oscillators and not 
+ * guns or spaceships.
+ */
+int isBorder(size_t x, size_t y)
 {
-	//avoid using the borders of the plane
+
 	return ((x == 0 || x == P_W-1) ||
 		(y == 0 || y == P_H-1));
 }
@@ -35,7 +76,7 @@ int isOutOfBounds(size_t x, size_t y)
 int countNeigh(cell plane[P_H][P_W], int x, int y)
 {
 	int count = 0;
-	if (isOutOfBounds(x, y))
+	if (isBorder(x, y))
 		return (-1);
 	/**
 	 * I tried some *way* fancier solutions and they
@@ -77,10 +118,10 @@ void nextGen(cell plane[P_H][P_W])
 		for (size_t j = 0; j < P_W; ++j)
 		{
 			count = countNeigh(plane, j, i);
-			if (count == -1) //exception 
+			if (count == -1)               //exception 
 				continue;
-			if (plane[i][j] == ALV && //live by neighbours
-			    count >= 2)
+			if (plane[i][j] == ALV &&      //live by neighbours
+			    (count == 2 || count == 3))
 				planecpy[i][j] = ALV;
 			
 			else if (plane[i][j] == ALV && // dead by ovepopulation
@@ -101,23 +142,9 @@ void nextGen(cell plane[P_H][P_W])
 	}
 	copyMatrix(planecpy, plane);
 }
-
-int main()
+void clScr(void)
 {
-	cell matrix[P_H][P_W] = {
-		{0, 0, 0, 0, 0},
-		{0, 0, 0, 0, 0},
-		{0, 1, 1, 1, 0},
-		{0, 0, 0, 0, 0},
-		{0, 0, 0, 0, 0}
-	};
-	int opt = 0;
-	while(opt != 'q') {
-		printf("\e[2J\e[H"); //clear screen
-		nextGen(matrix);
-		puts("Next gen: ");
-		printPlane(matrix);
-		opt = getchar();		
-	}
-	return (0);
+	printf("\e[2J\e[H");
+	//clear screen with ANSI
+	//scape codes
 }
