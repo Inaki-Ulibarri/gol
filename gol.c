@@ -1,6 +1,5 @@
 /**
- * TODO: add the Eureka pattern https://conwaylife.com/wiki/Eureka
- *       be able to exit the program propertly
+ * TODO: (temptative) add ncurses
  * Docs: https://conwaylife.com/wiki/Main_Page
  *       https://www.youtube.com/watch?v=qJAuyoDt03A
  *       https://en.wikipedia.org/wiki/Conway's_Game_of_Life 
@@ -10,8 +9,8 @@
 #include <stdbool.h>
 #include <unistd.h>
 
-#define P_H 6
-#define P_W 6
+#define P_H 18
+#define P_W 20
 
 enum {DED, ALV}; //alv papu :v
 typedef _Bool cell;
@@ -19,28 +18,52 @@ typedef _Bool cell;
 void printPlane(cell plane[P_H][P_W]);
 int  isBorder(size_t x, size_t y);
 int  countNeigh(cell plane[P_H][P_W], int x, int y);
-void copyMatrix(cell const mat_s[P_H][P_W],
+void copyMatrix(cell mat_s[P_H][P_W],
 		cell mat_t[P_H][P_W]);
 void nextGen(cell plane[P_H][P_W]);
 void clScr(void);
 
-int main()
+int main(int argc, char *argv[])
 {
-	cell matrix[P_H][P_W] = {
-		{0, 0, 0, 0, 0, 0},
-		{0, 1, 1, 0, 0, 0},
-		{0, 1, 0, 0, 0, 0},
-		{0, 0, 0, 0, 1, 0},
-		{0, 0, 0, 1, 1, 0},
-		{0, 0, 0, 0, 0, 0},
-		
+	if (argc > 1)
+	{
+		printf("Usage: %s \n"
+		       "This is a simple Conway's game of life that will\n"
+		       "print an entire period of the eureka pattern three times.\n"
+		       "If you want to change the pattern, feel free to edit the source code :D\n"
+		       , argv[0]);
+		return (0);
+	}
+	
+	cell matrix_eureka[P_H][P_W] = {
+		{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+		{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+		{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+		{0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0},
+		{0, 1, 0, 1, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0},
+	        {0, 0, 1, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0},
+		{0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+		{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+		{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+		{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+		{0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+		{0, 0, 1, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0},
+		{0, 1, 0, 1, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0},
+		{0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0},
+		{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+		{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+		{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+		{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
 	};
-	for (;;)
+	const size_t period = 30,
+		reps = 3;		
+	//print a full period 'reps' times
+	for (size_t i = 0; i < (period*reps); ++i)
 	{
 		clScr();
-		printPlane(matrix);
-		nextGen(matrix);		
-		usleep(500000);
+		printPlane(matrix_eureka);
+		nextGen(matrix_eureka);		
+		usleep(500000); //0.5 seconds
 	}
 	return (0);
 }
@@ -52,7 +75,7 @@ void printPlane(cell plane[P_H][P_W])
 		for (size_t j = 0; j < P_W; ++j)
 		{
 			plane[i][j] == DED ?
-				printf(". ") : printf("@ ");
+				printf("  ") : printf("@ ");
 		}
 		puts("\n");
 	}
@@ -97,7 +120,7 @@ int countNeigh(cell plane[P_H][P_W], int x, int y)
 	return (count);
 }
 
-void copyMatrix(cell const mat_s[P_H][P_W],
+void copyMatrix(cell mat_s[P_H][P_W],
 	       cell mat_t[P_H][P_W])
 {
 	for (size_t i = 0; i < P_H; ++i)
@@ -144,7 +167,9 @@ void nextGen(cell plane[P_H][P_W])
 }
 void clScr(void)
 {
-	printf("\e[2J\e[H");
-	//clear screen with ANSI
-	//scape codes
+	printf("\033[2J\033[H ");
+ 	/**
+	 * clear screen with ANSI
+	 * scape codes
+	 */
 }
